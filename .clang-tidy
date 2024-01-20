@@ -4,4 +4,3 @@ WarningsAsErrors: ''
 HeaderFilterRegex: '\(src|app\)\/*.\(h|hpp\)'
 AnalyzeTemporaryDtors: false
 FormatStyle:     none
-...
