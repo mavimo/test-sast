@@ -56,13 +56,6 @@ runs:
         update-environment: false
 
     # Install tools
-    - name: install clang-tidy
-      shell: bash
-      run: sudo apt-get install -y clang-tidy-17
-
-    - name: Install clang-tidy-sarif converter
-      shell: bash
-      run: cargo install clang-tidy-sarif sarif-fmt
 
     - name: Install Linux clang dependencies
       if: runner.os == 'Linux'
@@ -78,6 +71,14 @@ runs:
             sudo apt-get install -y clang-tidy-${{ inputs.version }}
           fi
         fi
+
+    # - name: install clang-tidy
+    #   shell: bash
+    #   run: sudo apt-get install -y clang-tidy-17
+
+    - name: Install clang-tidy-sarif converter
+      shell: bash
+      run: cargo install clang-tidy-sarif sarif-fmt
 
     # - name: Setup python venv (Unix)
     #   if: runner.os == 'Linux' || runner.os == 'macOS'
