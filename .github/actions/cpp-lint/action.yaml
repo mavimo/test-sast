@@ -36,8 +36,8 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: install reviewdog
-      uses: reviewdog/action-setup@v1.1.0
+    # - name: install reviewdog
+    #   uses: reviewdog/action-setup@v1.1.0
 
     # Env setup
     - uses: actions-rs/toolchain@v1
@@ -48,12 +48,12 @@ runs:
 
     - uses: Swatinem/rust-cache@v1
 
-    - name: Install python
-      uses: actions/setup-python@v5
-      id: setup-python
-      with:
-        python-version: '3.11'
-        update-environment: false
+    # - name: Install python
+    #   uses: actions/setup-python@v5
+    #   id: setup-python
+    #   with:
+    #     python-version: '3.11'
+    #     update-environment: false
 
     # Install tools
 
