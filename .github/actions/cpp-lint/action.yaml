@@ -80,7 +80,7 @@ runs:
       shell: bash
       run: |
         curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-        cargo binstall clang-tidy-sarif sarif-fmt
+        cargo binstall -y clang-tidy-sarif sarif-fmt
 
     # - name: Setup python venv (Unix)
     #   if: runner.os == 'Linux' || runner.os == 'macOS'
