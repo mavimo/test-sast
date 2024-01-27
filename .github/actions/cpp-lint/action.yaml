@@ -94,7 +94,8 @@ runs:
       if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       continue-on-error: true
       run: |
-        clang-tidy -p ${{ inputs.builddir }} ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
+        cp ${{ inputs.builddir }}/compile_commands.json ${{ inputs.workdir }}/compile_commands.json
+        clang-tidy ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
 
     - name: Convert clang-tidy report to sarif
       id: clang-to-sarif
