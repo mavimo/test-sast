@@ -70,7 +70,7 @@ runs:
       if: runner.os == 'Linux'
       shell: bash
       run: |
-        ::group::install-clang
+        echo "::group::install-clang"
         sudo apt-get update
         # First try installing from default Ubuntu repositories before trying LLVM script
         if ! sudo apt-get install -y clang-tidy-${{ inputs.version }}; then
@@ -81,7 +81,7 @@ runs:
             sudo apt-get install -y clang-tidy-${{ inputs.version }}
           fi
         fi
-        ::endgroup::
+        echo "::endgroup::"
 
     # - name: install clang-tidy
     #   shell: bash
