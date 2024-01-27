@@ -11,6 +11,9 @@ inputs:
   workdir:
     description: 'Working directory'
     default: '.'
+  builddir:
+    description: 'Build directory'
+    default: './build'
   tool_name:
     description: 'Tool name display reported in the Pull Request comment'
     default: 'clang-tidy'
@@ -108,7 +111,7 @@ runs:
       working-directory: ${{ inputs.workdir }}
       continue-on-error: true
       run: |
-        clang-tidy -warnings-as-errors=* ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
+        clang-tidy -p ${{ inputs.builddir }} -warnings-as-errors=* ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
         cat results.txt
         cat results.txt | tee clang_tidy.sarif | sarif-fmt
 

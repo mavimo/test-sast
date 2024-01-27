@@ -4,8 +4,9 @@
 # are unique in our project (makes it easier to find the correct file if you are working in a big
 # project).
 add_executable(unittests
+  unittests.cpp
   palindrome_test.cpp
-  unittests.cpp)
+)
 
 target_link_libraries(unittests Palindrome::libPalindrome gtest)
 
