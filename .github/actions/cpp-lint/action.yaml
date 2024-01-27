@@ -39,20 +39,33 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v42
+      with:
+        files: |
+          **.c
+          **.cpp
+          **.h
+          **.hpp
+
     # Env & tools setup
     - uses: Swatinem/rust-cache@v2
+      if: ${{ steps.changed-files.outputs.any_changed }}
 
     - name: Install clang-tidy-sarif converter
       shell: bash
+      if: ${{ steps.changed-files.outputs.any_changed }}
       run: |
         curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
         cargo binstall -y clang-tidy-sarif sarif-fmt
 
     - name: install reviewdog
+      if: ${{ steps.changed-files.outputs.any_changed }}
       uses: reviewdog/action-setup@v1.1.0
 
     - name: Install Linux clang dependencies
-      if: runner.os == 'Linux'
+      if: ${{ steps.changed-files.outputs.any_changed }}
       shell: bash
       run: |
         echo "::group::install-clang"
@@ -70,26 +83,17 @@ runs:
 
     # Execute
 
-    - name: Get changed files
-      id: changed-files
-      uses: tj-actions/changed-files@v42
-      with:
-        files: |
-          **.c
-          **.cpp
-          **.h
-          **.hpp
-
     - name: Run clang-tidy
       shell: bash
       working-directory: ${{ inputs.workdir }}
+      if: ${{ steps.changed-files.outputs.any_changed }}
       continue-on-error: true
       run: |
         clang-tidy -p ${{ inputs.builddir }} ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
 
     - name: Convert clang-tidy report to sarif
       id: clang-to-sarif
-      if: ${{ always() }}
+      if: ${{ steps.changed-files.outputs.any_changed }}
       shell: bash
       working-directory: ${{ inputs.workdir }}
       run: |
@@ -102,7 +106,7 @@ runs:
     #     sarif_file: clang_tidy.sarif
 
     - name: reviewdog
-      if: ${{ always() }}
+      if: ${{ steps.changed-files.outputs.any_changed }}
       shell: bash
       working-directory: ${{ inputs.workdir }}
       env:
