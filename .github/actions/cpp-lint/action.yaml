@@ -39,7 +39,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # Env setup
+    # Env & tools setup
     - uses: Swatinem/rust-cache@v2
 
     - name: Install clang-tidy-sarif converter
@@ -50,21 +50,6 @@ runs:
 
     - name: install reviewdog
       uses: reviewdog/action-setup@v1.1.0
-
-    # - uses: actions-rs/toolchain@v1
-    #   with:
-    #     profile: minimal
-    #     toolchain: stable
-    #     override: true
-
-    # - name: Install python
-    #   uses: actions/setup-python@v5
-    #   id: setup-python
-    #   with:
-    #     python-version: '3.11'
-    #     update-environment: false
-
-    # Install tools
 
     - name: Install Linux clang dependencies
       if: runner.os == 'Linux'
@@ -82,19 +67,6 @@ runs:
           fi
         fi
         echo "::endgroup::"
-
-    # - name: install clang-tidy
-    #   shell: bash
-    #   run: sudo apt-get install -y clang-tidy-17
-
-    # - name: Setup python venv (Unix)
-    #   if: runner.os == 'Linux' || runner.os == 'macOS'
-    #   shell: bash
-    #   run: |
-    #     ${{ steps.setup-python.outputs.python-path }} -m venv "$GITHUB_ACTION_PATH/venv"
-    #     source "$GITHUB_ACTION_PATH/venv/bin/activate"
-    #     pip install -r "$GITHUB_ACTION_PATH/requirements.txt"
-    #     clang-tools -i ${{ inputs.version }} -b
 
     # Execute
 
@@ -130,20 +102,6 @@ runs:
     #   with:
     #     sarif_file: results.sarif
 
-    # - name: Run clang-tidy
-    #   continue-on-error: true
-    #   shell: bash
-    #   working-directory: ${{ inputs.workdir }}
-    #   run: |
-    #     run-clang-tidy-17 \
-    #       | sed "s|$(pwd)/||g" > clang_tidy_raw.log
-
-    # - name: Remove clang-tidy duplicate error
-    #   shell: bash
-    #   run: |
-    #     python ${{ github.action_path }}/remove_duplicate_error.py ${{ inputs.workdir }}/clang_tidy_raw.log "clang-tidy" \
-    #       | tee ${{ inputs.workdir }}/clang_tidy.log
-
     - name: reviewdog
       if: ${{ always() }}
       shell: bash
@@ -153,17 +111,13 @@ runs:
       run: |
         reviewdog \
           -name "${{ inputs.tool_name }}" \
-          -level "${{ inputs.level }}" \
+          -f=sarif \
           -fail-on-error="${{ inputs.fail_on_error }}" \
           -filter-mode="${{ inputs.filter_mode }}" \
           -diff="git diff FETCH_HEAD" \
           -reporter="${{ inputs.reporter }}" \
-          -f=sarif \
           ${{ inputs.reviewdog_flags }} \
           < ./clang_tidy.sarif
 
-          # -efm="%-Gclang-tidy%s" \
-          # -efm="%-GError while processing%s" \
-          # -efm="%W%f:%l:%c: warning: %m" \
-          # -efm="%E%f:%l:%c: error: %m" \
-          # -efm="%C%m" \
+
+# -level "${{ inputs.level }}" \
