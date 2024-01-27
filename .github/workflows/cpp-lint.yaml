@@ -1,7 +1,6 @@
 name: cpp-lint
 
 on:
-#   push:
   pull_request:
 
 jobs:
