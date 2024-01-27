@@ -21,13 +21,10 @@ inputs:
     description: 'Reported level [info,warning,error]'
     default: 'warning'
   reporter:
-    description: |
-      Reporter of reviewdog command [github-pr-check,github-pr-review,github-check].
-      Default is github-pr-check.
-      github-pr-review can use Markdown and add a link to rule page in reviewdog reports.
+    description: 'Reviewdog reporter command'
     default: 'github-pr-check'
   filter_mode:
-    description: 'reviewdog filter_mode'
+    description: 'Reviewdog filter_mode'
     default: 'nofilter'
   fail_on_error:
     description: 'exit code for reviewdog on error'
@@ -49,11 +46,8 @@ runs:
           **.h
           **.hpp
 
-    # Env & tools setup
-    - uses: Swatinem/rust-cache@v2
-      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
-
     - name: Install clang-tidy-sarif converter
+      id: install-clang-tidy-sarif
       shell: bash
       if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       run: |
@@ -61,10 +55,12 @@ runs:
         cargo binstall -y clang-tidy-sarif sarif-fmt
 
     - name: install reviewdog
+      id: install-reviewdog
       if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       uses: reviewdog/action-setup@v1.1.0
 
     - name: Install Linux clang dependencies
+      id: install-clang-tidy
       if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       shell: bash
       run: |
@@ -82,14 +78,15 @@ runs:
         echo "::endgroup::"
 
     # Execute
-
     - name: Run clang-tidy
+      id: run-clang-tidy
       shell: bash
       working-directory: ${{ inputs.workdir }}
       if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       continue-on-error: true
       run: |
-        clang-tidy -p ${{ inputs.builddir }} ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
+        clang-tidy --list-checks
+        clang-tidy -p ./build ${{ steps.changed-files.outputs.all_changed_files }} -- > ${{ inputs.workdir }}/results.txt
 
     - name: Convert clang-tidy report to sarif
       id: clang-to-sarif
@@ -98,14 +95,15 @@ runs:
       working-directory: ${{ inputs.workdir }}
       run: |
         clang-tidy-sarif < results.txt > clang_tidy.sarif
-        cat clang_tidy.sarif | sarif-fmt
+        cat clang_tidy.sarif | sarif-fmt --color=always-ansi
 
-    # - name: Upload SARIF file
-    #   uses: github/codeql-action/upload-sarif@v1
-    #   with:
-    #     sarif_file: clang_tidy.sarif
+    # # - name: Upload SARIF file
+    # #   uses: github/codeql-action/upload-sarif@v1
+    # #   with:
+    # #     sarif_file: clang_tidy.sarif
 
     - name: reviewdog
+      id: reviewdog
       if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       shell: bash
       working-directory: ${{ inputs.workdir }}

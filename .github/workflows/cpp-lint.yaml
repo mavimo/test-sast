@@ -19,7 +19,9 @@ jobs:
       - name: CMake
         env:
           CC: clang
-        run: cmake -B ./build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        run: |
+          cmake -B ./build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          echo "${{ github.workspace }}"
 
       - name: SAST
         uses: ./.github/actions/cpp-lint/
