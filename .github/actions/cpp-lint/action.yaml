@@ -39,10 +39,10 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - id: list-folder-content
-      shell: bash
-      working-directory: ${{ inputs.workdir }}
-      run: 'ls -lah --color'
+    # - id: list-folder-content
+    #   shell: bash
+    #   working-directory: ${{ inputs.workdir }}
+    #   run: 'ls -lah --color'
 
     - name: Get changed files
       id: changed-files
@@ -55,8 +55,8 @@ runs:
           **.hpp
 
     # Env & tools setup
-    - uses: Swatinem/rust-cache@v2
-      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
+    # - uses: Swatinem/rust-cache@v2
+    #   if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
 
     - name: Install clang-tidy-sarif converter
       shell: bash
