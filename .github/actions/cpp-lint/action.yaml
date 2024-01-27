@@ -39,92 +39,94 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # - id: list-folder-content
+    - id: list-folder-content
+      shell: bash
+      working-directory: ${{ inputs.workdir }}
+      run: |
+        echo "${{ github.workspace }}"
+        cat ${{ inputs.builddir }}/compile_commands.json
+
+    # - name: Get changed files
+    #   id: changed-files
+    #   uses: tj-actions/changed-files@v42
+    #   with:
+    #     files: |
+    #       **.c
+    #       **.cpp
+    #       **.h
+    #       **.hpp
+
+    # # Env & tools setup
+    # # - uses: Swatinem/rust-cache@v2
+    # #   if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
+
+    # - name: Install clang-tidy-sarif converter
+    #   shell: bash
+    #   if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
+    #   run: |
+    #     curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+    #     cargo binstall -y clang-tidy-sarif sarif-fmt
+
+    # - name: install reviewdog
+    #   if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
+    #   uses: reviewdog/action-setup@v1.1.0
+
+    # - name: Install Linux clang dependencies
+    #   if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
+    #   shell: bash
+    #   run: |
+    #     echo "::group::install-clang"
+    #     sudo apt-get update
+    #     # First try installing from default Ubuntu repositories before trying LLVM script
+    #     if ! sudo apt-get install -y clang-tidy-${{ inputs.version }}; then
+    #       # This LLVM script will add the relevant LLVM PPA: https://apt.llvm.org/
+    #       wget https://apt.llvm.org/llvm.sh -O $GITHUB_ACTION_PATH/llvm_install.sh
+    #       chmod +x $GITHUB_ACTION_PATH/llvm_install.sh
+    #       if sudo $GITHUB_ACTION_PATH/llvm_install.sh ${{ inputs.version }}; then
+    #         sudo apt-get install -y clang-tidy-${{ inputs.version }}
+    #       fi
+    #     fi
+    #     echo "::endgroup::"
+
+    # # Execute
+
+    # - name: Run clang-tidy
     #   shell: bash
     #   working-directory: ${{ inputs.workdir }}
-    #   run: 'ls -lah --color'
-
-    - name: Get changed files
-      id: changed-files
-      uses: tj-actions/changed-files@v42
-      with:
-        files: |
-          **.c
-          **.cpp
-          **.h
-          **.hpp
-
-    # Env & tools setup
-    # - uses: Swatinem/rust-cache@v2
     #   if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
+    #   continue-on-error: true
+    #   run: |
+    #     cp ${{ inputs.builddir }}/compile_commands.json ${{ inputs.workdir }}/compile_commands.json
+    #     clang-tidy ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
 
-    - name: Install clang-tidy-sarif converter
-      shell: bash
-      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
-      run: |
-        curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-        cargo binstall -y clang-tidy-sarif sarif-fmt
+    # - name: Convert clang-tidy report to sarif
+    #   id: clang-to-sarif
+    #   if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
+    #   shell: bash
+    #   working-directory: ${{ inputs.workdir }}
+    #   run: |
+    #     clang-tidy-sarif < results.txt > clang_tidy.sarif
+    #     cat clang_tidy.sarif | sarif-fmt
 
-    - name: install reviewdog
-      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
-      uses: reviewdog/action-setup@v1.1.0
+    # # - name: Upload SARIF file
+    # #   uses: github/codeql-action/upload-sarif@v1
+    # #   with:
+    # #     sarif_file: clang_tidy.sarif
 
-    - name: Install Linux clang dependencies
-      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
-      shell: bash
-      run: |
-        echo "::group::install-clang"
-        sudo apt-get update
-        # First try installing from default Ubuntu repositories before trying LLVM script
-        if ! sudo apt-get install -y clang-tidy-${{ inputs.version }}; then
-          # This LLVM script will add the relevant LLVM PPA: https://apt.llvm.org/
-          wget https://apt.llvm.org/llvm.sh -O $GITHUB_ACTION_PATH/llvm_install.sh
-          chmod +x $GITHUB_ACTION_PATH/llvm_install.sh
-          if sudo $GITHUB_ACTION_PATH/llvm_install.sh ${{ inputs.version }}; then
-            sudo apt-get install -y clang-tidy-${{ inputs.version }}
-          fi
-        fi
-        echo "::endgroup::"
-
-    # Execute
-
-    - name: Run clang-tidy
-      shell: bash
-      working-directory: ${{ inputs.workdir }}
-      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
-      continue-on-error: true
-      run: |
-        cp ${{ inputs.builddir }}/compile_commands.json ${{ inputs.workdir }}/compile_commands.json
-        clang-tidy ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
-
-    - name: Convert clang-tidy report to sarif
-      id: clang-to-sarif
-      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
-      shell: bash
-      working-directory: ${{ inputs.workdir }}
-      run: |
-        clang-tidy-sarif < results.txt > clang_tidy.sarif
-        cat clang_tidy.sarif | sarif-fmt
-
-    # - name: Upload SARIF file
-    #   uses: github/codeql-action/upload-sarif@v1
-    #   with:
-    #     sarif_file: clang_tidy.sarif
-
-    - name: reviewdog
-      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
-      shell: bash
-      working-directory: ${{ inputs.workdir }}
-      env:
-        REVIEWDOG_GITHUB_API_TOKEN: ${{ inputs.github_token }}
-      run: |
-        reviewdog \
-          -name "${{ inputs.tool_name }}" \
-          -level "${{ inputs.level }}" \
-          -f=sarif \
-          -fail-on-error="${{ inputs.fail_on_error }}" \
-          -filter-mode="${{ inputs.filter_mode }}" \
-          -diff="git diff FETCH_HEAD" \
-          -reporter="${{ inputs.reporter }}" \
-          ${{ inputs.reviewdog_flags }} \
-          < ./clang_tidy.sarif
+    # - name: reviewdog
+    #   if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
+    #   shell: bash
+    #   working-directory: ${{ inputs.workdir }}
+    #   env:
+    #     REVIEWDOG_GITHUB_API_TOKEN: ${{ inputs.github_token }}
+    #   run: |
+    #     reviewdog \
+    #       -name "${{ inputs.tool_name }}" \
+    #       -level "${{ inputs.level }}" \
+    #       -f=sarif \
+    #       -fail-on-error="${{ inputs.fail_on_error }}" \
+    #       -filter-mode="${{ inputs.filter_mode }}" \
+    #       -diff="git diff FETCH_HEAD" \
+    #       -reporter="${{ inputs.reporter }}" \
+    #       ${{ inputs.reviewdog_flags }} \
+    #       < ./clang_tidy.sarif
