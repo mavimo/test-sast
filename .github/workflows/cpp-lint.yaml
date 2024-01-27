@@ -16,12 +16,12 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
-      # - name: CMake
-      #   env:
-      #     CC: clang
-      #   run: |
-      #     cmake -B ./build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-      #     echo "${{ github.workspace }}"
+      - name: CMake
+        env:
+          CC: clang
+        run: |
+          cmake -B ./build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          echo "${{ github.workspace }}"
 
       - name: SAST
         uses: ./.github/actions/cpp-lint/
