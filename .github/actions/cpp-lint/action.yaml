@@ -111,6 +111,7 @@ runs:
       run: |
         reviewdog \
           -name "${{ inputs.tool_name }}" \
+          -level "${{ inputs.level }}"
           -f=sarif \
           -fail-on-error="${{ inputs.fail_on_error }}" \
           -filter-mode="${{ inputs.filter_mode }}" \
@@ -118,6 +119,3 @@ runs:
           -reporter="${{ inputs.reporter }}" \
           ${{ inputs.reviewdog_flags }} \
           < ./clang_tidy.sarif
-
-
-# -level "${{ inputs.level }}" \
