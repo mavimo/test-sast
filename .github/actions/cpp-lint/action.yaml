@@ -51,21 +51,21 @@ runs:
 
     # Env & tools setup
     - uses: Swatinem/rust-cache@v2
-      if: ${{ steps.changed-files.outputs.any_changed }}
+      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
 
     - name: Install clang-tidy-sarif converter
       shell: bash
-      if: ${{ steps.changed-files.outputs.any_changed }}
+      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       run: |
         curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
         cargo binstall -y clang-tidy-sarif sarif-fmt
 
     - name: install reviewdog
-      if: ${{ steps.changed-files.outputs.any_changed }}
+      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       uses: reviewdog/action-setup@v1.1.0
 
     - name: Install Linux clang dependencies
-      if: ${{ steps.changed-files.outputs.any_changed }}
+      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       shell: bash
       run: |
         echo "::group::install-clang"
@@ -86,14 +86,14 @@ runs:
     - name: Run clang-tidy
       shell: bash
       working-directory: ${{ inputs.workdir }}
-      if: ${{ steps.changed-files.outputs.any_changed }}
+      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       continue-on-error: true
       run: |
         clang-tidy -p ${{ inputs.builddir }} ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
 
     - name: Convert clang-tidy report to sarif
       id: clang-to-sarif
-      if: ${{ steps.changed-files.outputs.any_changed }}
+      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       shell: bash
       working-directory: ${{ inputs.workdir }}
       run: |
@@ -106,7 +106,7 @@ runs:
     #     sarif_file: clang_tidy.sarif
 
     - name: reviewdog
-      if: ${{ steps.changed-files.outputs.any_changed }}
+      if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       shell: bash
       working-directory: ${{ inputs.workdir }}
       env:
