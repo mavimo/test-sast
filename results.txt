@@ -1,0 +1,12 @@
+/Users/marcovito.moscaritolo/Development/mavimo/test-sast/src/palindrome/main.cpp:3:10: error: 'palindrome.h' file not found [clang-diagnostic-error]
+    3 | #include "palindrome.h"
+      |          ^~~~~~~~~~~~~~
+/Users/marcovito.moscaritolo/Development/mavimo/test-sast/src/palindrome/main.cpp:9:23: warning: do not use pointer arithmetic [cppcoreguidelines-pro-bounds-pointer-arithmetic]
+    9 |     if (!isPalindrome(argp[i]))
+      |                       ^
+/Users/marcovito.moscaritolo/Development/mavimo/test-sast/src/palindrome/main.cpp:11:20: warning: do not use pointer arithmetic [cppcoreguidelines-pro-bounds-pointer-arithmetic]
+   11 |       std::cout << argp[i] 
+      |                    ^
+/Users/marcovito.moscaritolo/Development/mavimo/test-sast/src/palindrome/main.cpp:17:20: warning: do not use pointer arithmetic [cppcoreguidelines-pro-bounds-pointer-arithmetic]
+   17 |       std::cout << argp[i] << " is not a palindrome\n";      
+      |                    ^

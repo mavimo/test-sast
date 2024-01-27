@@ -111,7 +111,14 @@ runs:
       working-directory: ${{ inputs.workdir }}
       continue-on-error: true
       run: |
-        clang-tidy -p ${{ inputs.builddir }} -warnings-as-errors=* ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
+        clang-tidy -p ${{ inputs.builddir }} -warnings-as-errors=* ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt || true
+        cat results.txt
+        cat results.txt | tee clang_tidy.sarif | sarif-fmt
+
+    - name: Convert clang-tidy report to sarif
+      shell: bash
+      working-directory: ${{ inputs.workdir }}
+      run: |
         cat results.txt
         cat results.txt | tee clang_tidy.sarif | sarif-fmt
 
