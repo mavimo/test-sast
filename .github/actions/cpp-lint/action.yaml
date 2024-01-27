@@ -3,19 +3,19 @@ description: 'GitHub Action for clang-tidy'
 
 inputs:
   github_token:
-    description: 'GitHub token for reviewdog'
+    description: 'GitHub token'
     default: '${{ github.token }}'
   version:
-    description: 'Clang version'
+    description: 'Clang version used for testing'
     default: '17'
   workdir:
-    description: 'working directory'
+    description: 'Working directory'
     default: '.'
   tool_name:
-    description: 'reviewdog name'
+    description: 'Tool name display reported in the Pull Request comment'
     default: 'clang-tidy'
   level:
-    description: 'reviewdog level [info,warning,error]'
+    description: 'Reported level [info,warning,error]'
     default: 'warning'
   reporter:
     description: |
@@ -36,17 +36,17 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # - name: install reviewdog
-    #   uses: reviewdog/action-setup@v1.1.0
-
     # Env setup
+    - name: install reviewdog
+      uses: reviewdog/action-setup@v1.1.0
+
+    - uses: Swatinem/rust-cache@v1
+
     - uses: actions-rs/toolchain@v1
       with:
         profile: minimal
         toolchain: stable
         override: true
-
-    - uses: Swatinem/rust-cache@v1
 
     # - name: Install python
     #   uses: actions/setup-python@v5
@@ -72,15 +72,15 @@ runs:
           fi
         fi
 
-    # - name: install clang-tidy
-    #   shell: bash
-    #   run: sudo apt-get install -y clang-tidy-17
-
     - name: Install clang-tidy-sarif converter
       shell: bash
       run: |
         curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
         cargo binstall -y clang-tidy-sarif sarif-fmt
+
+    # - name: install clang-tidy
+    #   shell: bash
+    #   run: sudo apt-get install -y clang-tidy-17
 
     # - name: Setup python venv (Unix)
     #   if: runner.os == 'Linux' || runner.os == 'macOS'
@@ -95,7 +95,7 @@ runs:
 
     - name: Get changed files
       id: changed-files
-      uses: tj-actions/changed-files@v14.6
+      uses: tj-actions/changed-files@v42
       with:
         files: |
           **.c
@@ -109,12 +109,12 @@ runs:
       run: |
         clang-tidy -warnings-as-errors=* ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
         cat results.txt
-        cat results.txt | tee results.sarif | sarif-fmt
+        cat results.txt | tee clang_tidy.sarif | sarif-fmt
 
-    - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v1
-      with:
-        sarif_file: results.sarif
+    # - name: Upload SARIF file
+    #   uses: github/codeql-action/upload-sarif@v1
+    #   with:
+    #     sarif_file: results.sarif
 
     # - name: Run clang-tidy
     #   continue-on-error: true
@@ -130,23 +130,25 @@ runs:
     #     python ${{ github.action_path }}/remove_duplicate_error.py ${{ inputs.workdir }}/clang_tidy_raw.log "clang-tidy" \
     #       | tee ${{ inputs.workdir }}/clang_tidy.log
 
-    # - name: reviewdog
-    #   shell: bash
-    #   working-directory: ${{ inputs.workdir }}
-    #   env:
-    #     REVIEWDOG_GITHUB_API_TOKEN: ${{ inputs.github_token }}
-    #   run: |
-    #     reviewdog \
-    #       -name "${{ inputs.tool_name }}" \
-    #       -level "${{ inputs.level }}" \
-    #       -fail-on-error="${{ inputs.fail_on_error }}" \
-    #       -filter-mode="${{ inputs.filter_mode }}" \
-    #       -diff="git diff FETCH_HEAD" \
-    #       -reporter="${{ inputs.reporter }}" \
-    #       -efm="%-Gclang-tidy%s" \
-    #       -efm="%-GError while processing%s" \
-    #       -efm="%W%f:%l:%c: warning: %m" \
-    #       -efm="%E%f:%l:%c: error: %m" \
-    #       -efm="%C%m" \
-    #       ${{ inputs.reviewdog_flags }} \
-    #       < ./clang_tidy.log
+    - name: reviewdog
+      shell: bash
+      working-directory: ${{ inputs.workdir }}
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ inputs.github_token }}
+      run: |
+        reviewdog \
+          -name "${{ inputs.tool_name }}" \
+          -level "${{ inputs.level }}" \
+          -fail-on-error="${{ inputs.fail_on_error }}" \
+          -filter-mode="${{ inputs.filter_mode }}" \
+          -diff="git diff FETCH_HEAD" \
+          -reporter="${{ inputs.reporter }}" \
+          -f=sarif \
+          ${{ inputs.reviewdog_flags }} \
+          < ./clang_tidy.sarif
+
+          # -efm="%-Gclang-tidy%s" \
+          # -efm="%-GError while processing%s" \
+          # -efm="%W%f:%l:%c: warning: %m" \
+          # -efm="%E%f:%l:%c: error: %m" \
+          # -efm="%C%m" \
