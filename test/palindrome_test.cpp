@@ -6,6 +6,7 @@ using namespace palindrome;
 
 TEST(Palindrome, isPalindrome_true) {
   EXPECT_TRUE(isPalindrome("ana"));
+  int demo;
   EXPECT_TRUE(isPalindrome("anna"));
 }
 
