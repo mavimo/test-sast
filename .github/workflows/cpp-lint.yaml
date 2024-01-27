@@ -1,7 +1,6 @@
 name: cpp-lint
 
 on:
-  push:
   pull_request:
 
 jobs:
@@ -17,25 +16,10 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
-    #   - uses: cpp-linter/cpp-linter-action@v2
-    #     id: linter
-    #     env:
-    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #     with:
-    #       style: file
-    #       # The following value will only update a single comment
-    #       # in a pull request's thread. Set it to false to disable the comment.
-    #       # Set it to true to post a new comment (and delete the old comment).
-    #       thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
       - name: CMake
         env:
           CC: clang
         run: cmake -B ./build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-      - name: reviewdog with clang-tidy
-        uses: arkedge/action-clang-tidy
-        with:
-          workdir: ./build
-
-      - name: Build
-        run: cmake --build ./build
+      - name: SAST
+        uses: ./.github/actions/cpp-lint/

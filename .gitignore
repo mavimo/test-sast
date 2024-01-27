@@ -1,1 +1,3 @@
 /build
+/*.sarif
+/results.txt
