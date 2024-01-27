@@ -40,16 +40,22 @@ runs:
   using: "composite"
   steps:
     # Env setup
+    - uses: Swatinem/rust-cache@v2
+
+    - name: Install clang-tidy-sarif converter
+      shell: bash
+      run: |
+        curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+        cargo binstall -y clang-tidy-sarif sarif-fmt
+
     - name: install reviewdog
       uses: reviewdog/action-setup@v1.1.0
 
-    - uses: Swatinem/rust-cache@v1
-
-    - uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
+    # - uses: actions-rs/toolchain@v1
+    #   with:
+    #     profile: minimal
+    #     toolchain: stable
+    #     override: true
 
     # - name: Install python
     #   uses: actions/setup-python@v5
@@ -74,12 +80,6 @@ runs:
             sudo apt-get install -y clang-tidy-${{ inputs.version }}
           fi
         fi
-
-    - name: Install clang-tidy-sarif converter
-      shell: bash
-      run: |
-        curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-        cargo binstall -y clang-tidy-sarif sarif-fmt
 
     # - name: install clang-tidy
     #   shell: bash
