@@ -39,6 +39,11 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - id: list-folder-content
+      shell: bash
+      working-directory: ${{ inputs.workdir }}
+      run: 'ls -lah --color'
+
     - name: Get changed files
       id: changed-files
       uses: tj-actions/changed-files@v42

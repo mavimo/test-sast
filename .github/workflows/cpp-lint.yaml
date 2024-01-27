@@ -23,3 +23,5 @@ jobs:
 
       - name: SAST
         uses: ./.github/actions/cpp-lint/
+        with:
+          reporter: github-pr-annotations
