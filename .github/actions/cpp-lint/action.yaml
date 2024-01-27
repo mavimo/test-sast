@@ -93,7 +93,6 @@ runs:
       shell: bash
       working-directory: ${{ inputs.workdir }}
       run: |
-        cat results.txt
         clang-tidy-sarif < results.txt > clang_tidy.sarif
         cat clang_tidy.sarif | sarif-fmt
 
@@ -111,7 +110,7 @@ runs:
       run: |
         reviewdog \
           -name "${{ inputs.tool_name }}" \
-          -level "${{ inputs.level }}"
+          -level "${{ inputs.level }}" \
           -f=sarif \
           -fail-on-error="${{ inputs.fail_on_error }}" \
           -filter-mode="${{ inputs.filter_mode }}" \
