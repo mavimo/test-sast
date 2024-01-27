@@ -113,16 +113,17 @@ runs:
       working-directory: ${{ inputs.workdir }}
       continue-on-error: true
       run: |
-        clang-tidy -p ${{ inputs.builddir }} -warnings-as-errors=* ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
+        clang-tidy -p ${{ inputs.builddir }} ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
 
     - name: Convert clang-tidy report to sarif
-      shell: bash
+      id: clang-to-sarif
       if: ${{ always() }}
+      shell: bash
       working-directory: ${{ inputs.workdir }}
       run: |
         cat results.txt
-        cat results.txt | tee clang_tidy.sarif | sarif-fmt
-        cat clang_tidy.sarif
+        clang-tidy-sarif < results.txt > clang_tidy.sarif
+        cat clang_tidy.sarif | sarif-fmt
 
     # - name: Upload SARIF file
     #   uses: github/codeql-action/upload-sarif@v1
@@ -144,8 +145,8 @@ runs:
     #       | tee ${{ inputs.workdir }}/clang_tidy.log
 
     - name: reviewdog
-      shell: bash
       if: ${{ always() }}
+      shell: bash
       working-directory: ${{ inputs.workdir }}
       env:
         REVIEWDOG_GITHUB_API_TOKEN: ${{ inputs.github_token }}
