@@ -82,16 +82,6 @@ runs:
         echo "::endgroup::"
 
     # Execute
-
-    - name: CMake
-      id: cmake
-      shell: bash
-      working-directory: ${{ inputs.workdir }}
-      env:
-        CC: clang
-      run: |
-        cmake -B ./build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-
     - id: list-folder-content
       shell: bash
       working-directory: ${{ inputs.workdir }}
@@ -104,7 +94,8 @@ runs:
       if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
       continue-on-error: true
       run: |
-        clang-tidy -p ${{ inputs.builddir }} ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
+        cd ${{ inputs.builddir }}
+        clang-tidy ${{ steps.changed-files.outputs.all_changed_files }} -- > results.txt
 
     - name: Convert clang-tidy report to sarif
       id: clang-to-sarif
